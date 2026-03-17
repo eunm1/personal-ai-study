@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Post {
+  id Int @id @default(autoincrement())
+
+  title String
+  content String
+  imageUrl    String?  // ai 생성된 이미지 경로
+  summary     String?  // AI 요약본
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  searchIndex String @default("")
+
+  categoryId Int?  // AI가 분류한 카테고리
+  category   Category? @relation(fields: [categoryId], references: [id])
+}
+
+model Category {
+  id Int @id @default(autoincrement())
+  name  String @unique
+  posts Post[]
+  //'대괄호([])'는 리스트(배열)를 의미합니다.
+  // 하나의 카테고리 아래에 여러 개의 게시글이 매칭될 수 있다는 1:N(일대다) 관계를 설정하는 부분
+}
+
