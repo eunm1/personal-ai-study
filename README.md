@@ -15,7 +15,7 @@ nest architecture는
 
 2. ai 연동
 2-1. npm install @google/generative-ai
-2-2. Google AI Studio 에서 Get API key -> 프로젝트 생성 -> API 복사
+2-2. Google AI Studio 에서 Get API key -> 프로젝트 생성 -> API 복사 -> .env에 적용
 https://aistudio.google.com/prompts/new_chat
 2-3. npx nest g mo ai  # AiModule 생성
 2-4. npx nest g s ai --no-spec  # AiService 생성 (테스트 파일 없이)
@@ -39,6 +39,25 @@ https://aistudio.google.com/prompts/new_chat
 
 2-7 이미지 생성은 비동기 백그라운드 방식으로 적용
 "백그라운드 처리(Queue)" 방식
+
+3. DB 스키마 수정
+3-1. schema.prisma 파일의 Post 모델에 password와 author 필드를 추가합니다.
+
+3-2. npx prisma db push를 실행하여 Supabase DB에 반영합니다. (이미 데이터가 있다면 기본값(Default)을 설정하거나 필드를 선택적(?)으로 만드시는 게 안전합니다.)
+
+3-3. npx prisma generate로 클라이언트 코드를 새로 고침합니다.
+
+--------------------------------------------------------------------
+
+.env 환경 세팅
+
+# Connect to Supabase via connection pooling
+DATABASE_URL= [supabase에 프로젝트 생성후 값 가져오기 + 비번 작성]
+
+# Direct connection to the database. Used for migrations
+DIRECT_URL= [supabase에 프로젝트 생성후 값 가져오기 + 비번 작성]
+
+GEMINI_API_KEY=[google ai studio project 생성 후 비번 작성]
 
 --------------------------------------------------------------------
 
