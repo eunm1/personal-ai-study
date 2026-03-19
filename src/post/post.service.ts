@@ -5,8 +5,10 @@ import { prismaExclude } from 'src/util/prisma-exclude';
 import { removeWhitespace } from 'src/util/remove-whitepsace';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { AiService } from '../ai/ai.service'; // 추가
-import { CategoryService } from '../category/category.service'; // 추가
+import { AiService } from 'src/ai/ai.service'; // 추가
+import { CategoryService } from 'src/category/category.service'; // 추가
+import { InjectQueue } from '@nestjs/bullmq'; //
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class PostService {
@@ -14,6 +16,7 @@ export class PostService {
     private prisma: PrismaService,
     private aiService: AiService, // AI 서비스 주입
     private categoryService: CategoryService, // 카테고리 서비스 주입
+    @InjectQueue('post-tasks') private readonly postQueue: Queue, // 큐 주입
   ) {}
 
   async createPost(createPostDto: CreatePostDto) {
@@ -21,27 +24,13 @@ export class PostService {
     const searchIndex = removeWhitespace([createPostDto.title]);
 
     // 1. AI에게 본문 전달 -> 카테고리 및 요약 추출 (AiService 호출)
-    const { summary, category: categoryName } = await this.aiService.analyzePost(createPostDto.content);
+    const { summary, category: categoryName, imagePrompt } = await this.aiService.analyzePost(createPostDto.content);
 
     // 2. 분석된 카테고리명으로 DB에서 찾거나 생성함
     const category = await this.categoryService.findOrCreateCategory(categoryName);
 
-    // 3. AI에게 이미지 생성 요청 -> 생성된 이미지 URL 획득
-    // const generatedImgUrl = await this.aiService.generateImage(dto.title);
-
-    // 4. (선택) 생성된 이미지를 Cloudinary 등에 업로드 후 영구 URL 획득
-    // const finalImageUrl = await this.uploadService.uploadFromUrl(generatedImgUrl);
-
-    // 5. DB 저장
-    // return await this.prisma.post.create({
-    // data: {
-    //     ...dto,
-    //     category,
-    //     summary,
-    //     imageUrl: finalImageUrl,
-    //   },
-    // });
-    return await this.prisma.post.create({
+    // 3. 일단 게시글을 DB에 저장 (imageUrl은 아직 없음)
+    const post = await this.prisma.post.create({
       data: { 
         ...createPostDto,
         searchIndex,
@@ -56,6 +45,20 @@ export class PostService {
       }
       
     });
+
+    // 🚀 [비동기 핵심] 3. 이미지 생성 작업을 큐에 던집니다.
+    // 유저는 여기서 기다리지 않고 바로 응답을 받게 됩니다!
+    await this.postQueue.add('generate-image', {
+      attempts: 3, // 3번까지 재시도
+      postId: post.id,
+      imagePrompt: imagePrompt, // 분석 단계에서 만든 영문 프롬프트
+      backoff: {
+        type: 'exponential',
+        delay: 10000, // 에러 나면 10초 뒤에 다시 시도 (점점 늘어남)
+      },
+    });
+
+    return post;
   }
 
   async findAllPosts() {

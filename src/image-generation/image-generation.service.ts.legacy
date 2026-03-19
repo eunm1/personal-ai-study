@@ -1,0 +1,45 @@
+// gemini-image.service.ts
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { ConfigService } from '@nestjs/config'; 
+
+@Injectable()
+export class ImageGenerationService {
+    private genAI: GoogleGenerativeAI;
+    private model: any;
+
+  constructor(private configService: ConfigService) {
+    // 1. .env에 저장한 API 키를 불러옵니다.
+       const apiKey = this.configService.get<string>('GEMINI_API_KEY');
+       if (!apiKey) {
+         throw new InternalServerErrorException('GEMINI_API_KEY가 설정되지 않았습니다.');
+       }
+   
+       // 2. Gemini SDK 초기화
+       this.genAI = new GoogleGenerativeAI(apiKey);
+       //개발자 테스트용으로 무료 할당량을 제공합니다. (예: 분당 2~5장, 하루 50~100장 내외 - 정책에 따라 변동 가능)
+       this.model = this.genAI.getGenerativeModel(
+         { model: 'models/gemini-3.1-flash-image-preview' },
+         { apiVersion: 'v1beta' }
+       );
+  }
+
+  async generateImage(prompt: string): Promise<Buffer> {
+    try {
+      console.log("prompt",prompt)
+      // 2. 이미지 생성 요청
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      
+      // 3. 응답에서 이미지 데이터(base64) 추출 (모델 응답 구조에 따라 다를 수 있음)
+      const base64Data = response.candidates[0].content.parts[0].inlineData.data;
+      
+      // 4. Buffer로 변환하여 반환 (Supabase 업로드용)
+      return Buffer.from(base64Data, 'base64');
+
+    } catch (error) {
+      console.error('AI 이미지 생성 중 에러 발생:', error);
+      throw error;
+    }
+  }
+}

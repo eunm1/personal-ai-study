@@ -1,4 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 @Injectable()
@@ -6,9 +7,9 @@ export class AiService {
   private genAI: GoogleGenerativeAI;
   private model: any;
 
-  constructor() {
+  constructor(private configService: ConfigService) {
     // 1. .env에 저장한 API 키를 불러옵니다.
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     if (!apiKey) {
       throw new InternalServerErrorException('GEMINI_API_KEY가 설정되지 않았습니다.');
     }
@@ -31,8 +32,9 @@ export class AiService {
       [조건]
       1. summary: 본문을 2문장 내외로 요약.
       2. category: 본문에 어울리는 단어 하나 (예: 개발, 일상, 여행).
-      3. 응답은 반드시 JSON 형식이어야 하며, 마크다운 코드 블록(\`\`\`json)을 절대 사용하지 마.
-      4. 오직 순수 JSON 데이터만 출력해.
+      3. imagePrompt: 이 글의 핵심 내용을 바탕으로 AI 이미지 생성을 위한 '상세한 영어 프롬프트' (Professional digital art style)
+      4. 응답은 반드시 JSON 형식이어야 하며, 마크다운 코드 블록(\`\`\`json)을 절대 사용하지 마.
+      5. 오직 순수 JSON 데이터만 출력해.
 
       본문: ${content}
       `;
