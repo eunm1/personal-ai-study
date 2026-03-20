@@ -14,17 +14,29 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum PostStatus {
+  PENDING
+  ANALYZING
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
 model Post {
   id Int @id @default(autoincrement())
 
   title String
-  content String
-  imageUrl    String?  // ai 생성된 이미지 경로
-  summary     String?  // AI 요약본
+  content String @db.Text
+
+  searchIndex String @default("")
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  searchIndex String @default("")
-  //style     String?  // TODO 요 한 줄만 추가하고 npx prisma migrate dev 하면 끝!
+
+  // (필드 추가 2026.03.20)
+  author    String        // 작성자 이름
+  password  String        // 암호화된 비밀번호가 저장될 공간
+  analysis  PostAnalysis?
 
   categoryId Int?  // AI가 분류한 카테고리
   category   Category? @relation(fields: [categoryId], references: [id])
@@ -38,3 +50,21 @@ model Category {
   // 하나의 카테고리 아래에 여러 개의 게시글이 매칭될 수 있다는 1:N(일대다) 관계를 설정하는 부분
 }
 
+//(테이블 추가 2026.03.20)
+model PostAnalysis {
+  id           Int        @id @default(autoincrement())
+  post         Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId       Int        @unique 
+
+  style        String?    //이미지 생성 스타일 
+  
+  summary      String?    @db.Text
+  imagePrompt  String?    @db.Text
+  tempImageUrl String?    // Leonardo 임시 주소 (재시도용)
+  imageUrl     String?    // Supabase 영구 주소
+  
+  status       PostStatus @default(PENDING)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

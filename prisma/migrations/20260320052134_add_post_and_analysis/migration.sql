@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Post" ALTER COLUMN "author" DROP DEFAULT,
+ALTER COLUMN "password" DROP DEFAULT;

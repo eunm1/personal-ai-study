@@ -2,13 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { Category } from '@prisma/client';
 
 @Injectable()
 export class CategoryService {
   constructor(private prisma: PrismaService) {}
 
   // AI가 추출한 이름으로 카테고리를 찾거나 생성하는 핵심 메서드
-  async findOrCreateCategory(name: string) {
+  async findOrCreateCategory(name: string): Promise<Category> {
     
     // upsert : DB 유니크 제약 조건 에러가 나는 것을 방지
   return await this.prisma.category.upsert({

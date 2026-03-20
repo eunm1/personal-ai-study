@@ -17,14 +17,14 @@ export class PostEntitiy {
   content: string;
 
   @ApiProperty({
-    description: 'ai 생성이미지 url',
+    description: '포스트 비밀번호',
   })
-  imageUrl: string;
+  password: string;
 
   @ApiProperty({
-    description: 'ai 글 요약',
+    description: '포스트 작성자',
   })
-  summary: string;
+  author: string;
 
   @ApiProperty({
     description: '생성일',
@@ -40,4 +40,5 @@ export class PostEntitiy {
     description: 'ai 분류 카테고리 id',
   })
   categoryId: number;
+
 }

@@ -8,6 +8,7 @@ import { CategoryModule } from './category/category.module';
 import { AiModule } from './ai/ai.module';
 import { BullModule } from '@nestjs/bullmq';
 import { ImageGenerationModule } from './image-generation/image-genration.module';
+import { PostAnalysisService } from './post-analysis/post-analysis.service';
 
 @Module({
   imports: [
@@ -25,6 +26,6 @@ import { ImageGenerationModule } from './image-generation/image-genration.module
     PostModule, CategoryModule, PrismaModule, AiModule, ImageGenerationModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, PostAnalysisService],
 })
 export class AppModule {}

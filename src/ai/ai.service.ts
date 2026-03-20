@@ -1,9 +1,13 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { AiAnalysisResult } from 'src/types/job-types';
+import { POST_DEFAULT_STYLE } from 'src/types/post-types';
 
 @Injectable()
 export class AiService {
+  private readonly prisma: PrismaService;
   private genAI: GoogleGenerativeAI;
   private model: any;
 
@@ -23,35 +27,44 @@ export class AiService {
     );
   }
 
-  async analyzePost(content: string) {
+  async analyzePost(content: string, style: string = POST_DEFAULT_STYLE): Promise<AiAnalysisResult> {
     try {
       // AI에게 줄 '지시사항(Prompt)'입니다. JSON으로 받기 위해 구체적으로 적어줍니다.
       const prompt = `
       다음 글을 읽고 요약과 카테고리를 추출해줘.
       
       [조건]
-      1. summary: 본문을 2문장 내외로 요약.
-      2. category: 본문에 어울리는 단어 하나 (예: 개발, 일상, 여행).
-      3. imagePrompt: 이 글의 핵심 내용을 바탕으로 AI 이미지 생성을 위한 '상세한 영어 프롬프트' (Professional digital art style)
-      4. 응답은 반드시 JSON 형식이어야 하며, 마크다운 코드 블록(\`\`\`json)을 절대 사용하지 마.
-      5. 오직 순수 JSON 데이터만 출력해.
+      1. 출력은 반드시 유효한 JSON 객체 하나여야 합니다.
+      2. 필드 설명:
+        - summary: 본문의 핵심 내용을 한국어 2문장 내외로 요약. (중복 문장 금지)
+        - category: 본문과 가장 어울리는 한국어 단어 하나 (예: 요리, 개발, 일상, 여행).
+        - imagePrompt: 이 글의 핵심 내용을 바탕으로 '${style}' 스타일을 반영한 AI 이미지 생성 영어 프롬프트.
+      3. 중복된 문장이나 반복되는 구문을 절대 생성하지 마십시오.
+      4. 마크다운(\`\`\`json) 없이 순수 JSON 텍스트만 출력하십시오.
+
+      [출력 형식 예시]
+      {
+        "summary": "요약 내용",
+        "category": "카테고리",
+        "imagePrompt": "Detailed English prompt..."
+      }
 
       본문: ${content}
       `;
 
       console.log(prompt)
       const result = await this.model.generateContent(prompt);
-      console.log(result)
-
-      const response = await result.response;
-      const text = response.text();
-
+      
       // AI가 준 텍스트(JSON 형태)를 실제 객체로 변환합니다.
-      return JSON.parse(text);
+      const data = JSON.parse(result.response.text());
+      console.log(data)
+
+      return data;
+
     } catch (error) {
       console.error('AI 분석 중 에러 발생:', error);
       // 에러 발생 시 기본값 반환 (서버가 멈추지 않게)
-      return { summary: content.substring(0, 50), category: '미분류' };
+      return { summary: content.substring(0, 50), category: '미분류'};
     }
   }
 }

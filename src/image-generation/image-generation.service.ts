@@ -15,7 +15,7 @@ export class ImageGenerationService {
     }
   }
 
-  async generateImage(prompt: string): Promise<Buffer> {
+  async generateImage(prompt: string): Promise<string> {
     try {
       console.log("Leonardo prompt:", prompt);
 
@@ -55,8 +55,8 @@ export class ImageGenerationService {
       if (!imageUrl) throw new Error("이미지 생성 시간 초과");
 
       // 4. URL에서 이미지 다운로드하여 Buffer로 변환
-      const imageRes = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-      return Buffer.from(imageRes.data);
+      
+      return imageUrl
 
     } catch (error) {
       console.error('Leonardo AI 이미지 생성 중 에러 발생:', error?.response?.data || error.message);

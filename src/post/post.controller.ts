@@ -23,6 +23,7 @@ import { PostService } from './post.service';
 import { PostEntitiy } from './entitiy/post.entitiy';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { UpdatePostAnalysisDto } from 'src/post-analysis/dto/update-post-analysis.dto';
 
 @ApiTags('post (post관련 API)')
 @Controller('post')
@@ -223,4 +224,19 @@ export class PostController {
   delete(@Param('postId') postId: number) {
     return this.postService.removePost(postId);
   }
+
+  /***
+   * 이미지 생성부분만 다시 진행
+   */
+  // @Patch(':id/re-analyze')
+  // async reAnalyze(
+  //   @Param('id', ParseIntPipe) id: number,
+  //   @Body() updateDto: UpdatePostAnalysisDto
+  // ) {
+  //   // 1. 서비스 로직 호출 (DB 수정 및 첫 번째 큐 삽입)
+  //   await this.postsService.redoAnalysis(id, updateDto);
+
+  //   // 2. 사용자에게는 일단 성공했다고 알려줌
+  //   return { message: '재분석 체인이 시작되었습니다. 잠시만 기다려주세요!' };
+  // }
 }
