@@ -78,13 +78,13 @@ export class PostController {
     return this.postService.findRandomPosts();
   }
 
-  @Get(':movieId')
+  @Get(':postId')
   @ApiOperation({
     summary: '특정 글 불러오기',
     description: 'id를 기준으로 특정 글의 정보를 불러옵니다',
   })
   @ApiParam({
-    name: 'movieId',
+    name: 'postId',
     description: '정보를 불러오려는 글의 아이디',
     type: Number,
   })
@@ -94,8 +94,8 @@ export class PostController {
   @ApiNotFoundResponse({
     description: '{id}번 글는 존재하지 않습니다',
   })
-  findOne(@Param('movieId') movieId: number) {
-    return this.postService.findOnePost(movieId);
+  findOne(@Param('postId') postId: number) {
+    return this.postService.findOnePost(postId);
   }
 
   /*
@@ -150,13 +150,13 @@ export class PostController {
   /*
    * PATCH
    */
-  @Patch(':movieId')
+  @Patch(':postId')
   @ApiOperation({
     summary: '글 정보 수정하기',
     description: '특정 글의 정보를 수정합니다.',
   })
   @ApiParam({
-    name: 'movieId',
+    name: 'postId',
     description: '정보를 수정하려는 글의 아이디',
     type: Number,
   })
