@@ -22,7 +22,7 @@ export class PostService {
   async createPost(createPostDto: CreatePostDto) {
     console.log('컨트롤러 진입 성공:', createPostDto);
     const searchIndex = removeWhitespace([createPostDto.title]);
-    const { title, content, author, password, style } = createPostDto;
+    const { title, content, author, password, style, tempUserId } = createPostDto;
 
     // 1. 일단 게시글을 DB에 저장 (imageUrl은 아직 없음)
     const post = await this.prisma.post.create({
@@ -47,6 +47,7 @@ export class PostService {
       postId: post.id,
       style: post.analysis?.style,
       content: post.content, 
+      tempUserId : tempUserId
     });
 
     return post;

@@ -6,6 +6,7 @@ import { AiModule } from 'src/ai/ai.module';
 import { CategoryModule } from 'src/category/category.module'; // 추가
 import { ImageGenerationModule } from 'src/image-generation/image-genration.module';
 import { PostProcessor } from './post.processor';
+import { NotificationController } from 'src/notification/notification.controller';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { PostProcessor } from './post.processor';
       name: 'post-tasks', // 큐 이름 일치 확인!
     }),
   ], 
-  controllers: [PostController],
+  controllers: [PostController, NotificationController],
   providers: [PostService, PostProcessor],
 })
 export class PostModule {}

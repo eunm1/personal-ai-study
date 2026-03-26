@@ -9,6 +9,7 @@ import { AiModule } from './ai/ai.module';
 import { BullModule } from '@nestjs/bullmq';
 import { ImageGenerationModule } from './image-generation/image-genration.module';
 import { PostAnalysisService } from './post-analysis/post-analysis.service';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -23,6 +24,8 @@ import { PostAnalysisService } from './post-analysis/post-analysis.service';
         port: parseInt(process.env.REDIS_PORT, 10) || 6379,
       },
     }),
+    //3. EventEmitter 등록
+    EventEmitterModule.forRoot(),
     PostModule, CategoryModule, PrismaModule, AiModule, ImageGenerationModule,
   ],
   controllers: [AppController],

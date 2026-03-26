@@ -35,4 +35,8 @@ export class CreatePostDto {
   @IsString()
   @IsOptional() // 스타일은 선택 사항!
   style?: string;
+
+  @IsString()
+  @IsNotEmpty({ message: '작성자는 필수입니다.' })
+  tempUserId: string;
 }

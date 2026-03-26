@@ -4,6 +4,7 @@ import { Job } from 'bullmq';
 // 모든 작업의 공통 분모
 interface BaseJobData {
   postId: number;
+  tempUserId: string;
 }
 
 export interface AnalyzeTextJob extends BaseJobData{

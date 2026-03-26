@@ -112,6 +112,36 @@ Docker Desktop 작업표시줄 아이콘에서 실행 중지
 (제미나이 gemini-3.1-flash-image-preview : [429 Too Many Requests] error )
 
 
+- (12) 서버 측  : 알림 시스템 구축
+Step 1: EventEmitter 설치 및 설정
+먼저 NestJS 내부에서 이벤트를 주고받기 위해 설치가 필요해요.
+npm install @nestjs/event-emitter
+
+Step 2: Processor 수정 (알림 쏘기)
+마지막 4단계인이벤트를 발생시키는 코드를 추가합니다.
+
+Step 3: SSE 컨트롤러 만들기 (post controller)
+
+private readonly postEvents$ = new Subject<any>();
+````
+  // 💡 내부 이벤트를 감지해서 Subject에 푸시
+  @OnEvent('post.completed')
+  handlePostCompleted(payload: any) {
+    this.postEvents$.next(payload);
+  }
+
+  @Sse('sse/:postId')
+  sse(@Param('postId') postId: string): Observable<MessageEvent> {
+    return this.postEvents$.pipe(
+      // 💡 현재 연결된 페이지의 postId와 일치하는 이벤트만 필터링! (중요)
+      filter((data) => data.postId === postId),
+      map((data) => ({
+        data: { status: data.status, imageUrl: data.imageUrl },
+      } as MessageEvent))
+    );
+  }
+```
+
 ## 3. DB 스키마 수정 및 마이그레이션
 
 - (1) Prisma 스키마 분리 및 마이그레이션
