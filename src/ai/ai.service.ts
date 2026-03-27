@@ -64,7 +64,7 @@ export class AiService {
     } catch (error) {
       console.error('AI 분석 중 에러 발생:', error);
       // 에러 발생 시 기본값 반환 (서버가 멈추지 않게)
-      return { summary: content.substring(0, 50), category: '미분류'};
+      throw error;
     }
   }
 }

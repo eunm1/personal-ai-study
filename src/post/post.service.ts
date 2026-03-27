@@ -10,12 +10,14 @@ import { CategoryService } from 'src/category/category.service'; // 추가
 import { POST_SELECT_FIELDS, POST_DEFAULT_STYLE } from 'src/types/post-types';
 import { InjectQueue } from '@nestjs/bullmq'; //
 import { Queue } from 'bullmq';
+import { SupabaseStorageService } from 'src/image-generation/supabase-storage.service';
 
 @Injectable()
 export class PostService {
   constructor(
     private prisma: PrismaService,
     private categoryService: CategoryService,
+    private readonly supabaseStorage: SupabaseStorageService,
     @InjectQueue('post-tasks') private readonly postQueue: Queue, // 큐 주입
   ) {}
 
@@ -48,6 +50,12 @@ export class PostService {
       style: post.analysis?.style,
       content: post.content, 
       tempUserId : tempUserId
+    }, {
+      attempts: 3, // 💡 최대 3번 시도
+      backoff: {
+        type: 'exponential',
+        delay: 5000, // 💡 실패 시 5초 뒤부터 점진적으로 늦게 재시도
+      },
     });
 
     return post;
@@ -134,6 +142,13 @@ export class PostService {
         postId: id,
         content: updateData.content,
         style: updateData.style || existingPost.analysis?.style || POST_DEFAULT_STYLE, // 기존 스타일 유지
+        tempUserId : updateData.tempUserId
+      }, {
+        attempts: 3, // 💡 최대 3번 시도
+        backoff: {
+          type: 'exponential',
+          delay: 5000, // 💡 실패 시 5초 뒤부터 점진적으로 늦게 재시도
+        },
       });
     }
 
@@ -161,7 +176,27 @@ export class PostService {
   }
 
   async removePost(id: number) {
-    await this.prisma.post.delete({
+
+    const post = await this.prisma.post.findUnique({
+      where: { id: id },
+      include: { analysis: true }
+    });
+
+    if (!post) throw new NotFoundException('포스트를 찾을 수 없습니다.');
+
+    // 2. 👿 스토리지 이미지 삭제
+    const imageUrl = post.analysis?.imageUrl;
+    if (imageUrl) {
+      // URL에서 파일명만 추출하는 로직이 필요할 수 있습니다.
+      // 예: https://.../post-images/uuid_image.png -> 'uuid_image.png'
+      const fileName = imageUrl.split('/').pop(); 
+      
+      if (fileName) {
+        await this.supabaseStorage.deleteImage(fileName);
+      }
+    }
+
+    return await this.prisma.post.delete({
       where: {
         id: id,
       },

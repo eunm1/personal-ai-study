@@ -35,4 +35,18 @@ export class SupabaseStorageService {
 
     return publicUrlData.publicUrl;
   }
+
+  async deleteImage(fileName: string) {
+    const { data, error } = await this.supabase.storage
+      .from('post-image') // 설정한 버킷 이름 🕵️‍♀️
+      .remove([`${fileName}`]); // 배열 형태로 넘겨야 합니다!
+
+    if (error) {
+      console.error('스토리지 이미지 삭제 실패:', error);
+      // 💡 이미지 삭제 실패가 전체 프로세스를 멈추게 할지 말지는 선택 사항입니다.
+      // 보통 로그만 남기고 DB 삭제를 진행하기도 해요.
+    }
+    
+    return data;
+  }
 }

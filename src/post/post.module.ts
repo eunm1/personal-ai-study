@@ -7,6 +7,7 @@ import { CategoryModule } from 'src/category/category.module'; // 추가
 import { ImageGenerationModule } from 'src/image-generation/image-genration.module';
 import { PostProcessor } from './post.processor';
 import { NotificationController } from 'src/notification/notification.controller';
+import { SupabaseStorageService } from 'src/image-generation/supabase-storage.service';
 
 @Module({
   imports: [
@@ -18,6 +19,6 @@ import { NotificationController } from 'src/notification/notification.controller
     }),
   ], 
   controllers: [PostController, NotificationController],
-  providers: [PostService, PostProcessor],
+  providers: [PostService, PostProcessor, SupabaseStorageService],
 })
 export class PostModule {}
