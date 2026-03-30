@@ -8,7 +8,7 @@ import { PostCompletedEvent } from 'src/types/post-event.types';
 export class NotificationController {
   private readonly postEvents$ = new Subject<PostCompletedEvent>();
 
-  @OnEvent('post.completed')
+  @OnEvent('post.status')
   handlePostCompleted(payload: PostCompletedEvent) {
     console.log("📢 [EventEmitter] -> [SSE Subject] 데이터 전달:", payload);
     this.postEvents$.next(payload); 
@@ -36,6 +36,7 @@ export class NotificationController {
         data: { 
             imageUrl: data.imageUrl,
             status: data.status, 
+            percent: data.percent, 
             postId: data.postId, // 💡 클라이언트가 이동할 때 쓰라고 postId도 같이 보내줌
             title: data.title    // 💡 토스트에 띄울 제목도 같이 보내주면 굿!
         } 
@@ -43,3 +44,11 @@ export class NotificationController {
     );
     }
 }
+
+// 💡 상태별로 퍼센트를 임의로 정해줄 수 있어요! 👿
+//   const percentMap: Record<string, number> = {
+//     'ANALYZING': 30,
+//     'GENERATING': 70,
+//     'UPLOADING': 90,
+//     'COMPLETED': 100
+//   };
